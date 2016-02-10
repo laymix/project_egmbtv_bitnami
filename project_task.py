@@ -525,7 +525,7 @@ class project_hr_fiche_jour(models.Model):
          
           mytimedelta=timedelta(days=1)
           tab=[]
-          if self.hr_dep or self.hr_darr:
+          if self.hr_dep and self.hr_darr:
               if self.hr_dep >= self.hr_darr:
                  raise ValidationError('L\'heure de départ ne peut pas être supérieure à l\'heure d\'arrivée' ) 
               self.hr_fonct=8 if self.hr_darr - self.hr_dep>=8 else self.hr_darr - self.hr_dep
