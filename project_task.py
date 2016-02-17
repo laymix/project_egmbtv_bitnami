@@ -570,9 +570,7 @@ class project_hr_fiche_jour(models.Model):
       specialist=fields.Binary(string='Le Spécialiste')
       maneuvre=fields.Binary(string='Le Manoeuvre')
       user_connected=fields.Many2one('res.users',string='Utilisateur Connecté')
-      my_fiche_id=fields.Many2one('project.hr.fiche.jour',string='Fiche Journalière')
-      my_fiche_ids=fields.One2many('project.hr.fiche.jour','my_fiche_id',string='Fiche Journalière')
-      @api.onchange('date','hr_dep','hr_darr')
+      @api.onchange('date','my_ids')
       def onchangeme(self):
           
           moiss=''
@@ -584,11 +582,7 @@ class project_hr_fiche_jour(models.Model):
          
           mytimedelta=timedelta(days=1)
           tab=[]
-          if self.hr_dep and self.hr_darr:
-              if self.hr_dep >= self.hr_darr:
-                 raise ValidationError('L\'heure de départ ne peut pas être supérieure à l\'heure d\'arrivée' ) 
-              self.hr_fonct=8 if self.hr_darr - self.hr_dep>=8 else self.hr_darr - self.hr_dep
-              self.hr_supp=0 if  self.hr_darr - self.hr_dep<=8 else self.hr_darr - self.hr_dep - 8                     
+                  
 
           if self.date:
               
@@ -617,8 +611,8 @@ class project_hr_fiche_jour(models.Model):
                   tab.append((0,0,{'jour':date1}))
                   
                   datedebut=datedebut + timedelta(days=1)
-              self.my_fiche_ids=tab
-class project_hr_fiche_jour_board(models.Model)
+              self.my_ids=tab
+class project_hr_fiche_jour_board(models.Model):
     _name='project.hr.fiche.jour.board'
 
     name=fields.Char('Personne')
@@ -632,7 +626,15 @@ class project_hr_fiche_jour_board(models.Model)
     hr_supp=fields.Integer(string='H. Suppl')
     decharge=fields.Char(string='Décharge')
     obs=fields.Text(string='Observation')
-    my_id=field.Many2one('project.hr.fiche.jour.board',string='Tableau')
+    my_id=fields.Many2one('project.hr.fiche.jour',string='Tableau')
+    
+    @api.onchange('hr_dep','hr_darr')
+    def onchanges(self):
+        if self.hr_dep and self.hr_darr:
+              if self.my_id.my_ids.hr_dep >= self.my_id.my_ids.hr_darr:
+                 raise ValidationError('L\'heure de départ ne peut pas être supérieure à l\'heure d\'arrivée' ) 
+              self.my_id.my_ids.hr_fonct=8 if self.my_id.my_ids.hr_darr - self.my_id.my_ids.hr_dep>=8 else self.my_id.my_ids.hr_darr - self.my_id.my_ids.hr_dep
+              self.my_id.my_ids.hr_supp=0 if  self.my_id.my_ids.hr_darr - self.my_id.my_ids.hr_dep<=8 else self.my_id.my_ids.hr_darr - self.my_id.my_ids.hr_dep - 8            
 class project_hr_fiche_jour_contrat(models.Model):
     _name='project.hr.fiche.jour.contrat'
 
@@ -657,7 +659,7 @@ class project_hr_fiche_jour_contrat(models.Model):
     montant=fields.Float(sting='Montant')
     indice=fields.Selection([('h','Heure'),('j','Jour'),('semaine','Semaine'),('mois','Mois'),('annee','Année')])
     tableau_ids=fields.One2many('project.hr.fiche.jour.contrat','tableau_id',string='Tableau',compute='gest_contrat')
-    tableau_id=fields.Many2one('project.hr.fiche.jour.contrat',string='tableau',compute='gest_contrat')
+    tableau_id=fields.Many2one('project.hr.fiche.jour.contrat',string='tableau')
     gazoil=fields.Float('Gazoil')
     huile=fields.Float('Huile')
     hr_sup=fields.Integer('H. Supp')
@@ -672,6 +674,7 @@ class project_hr_fiche_jour_contrat(models.Model):
     @api.depends('montant','indice','date_debut','date_fin','personne_id','choix_contrat')
     def gest_contrat(self):
         idss=[]
+        
         tab=[]
         if self.choix_contrat:
             if self.choix_contrat=='pointjour':
@@ -686,10 +689,11 @@ class project_hr_fiche_jour_contrat(models.Model):
                 self.date_fin=fields.Date.to_string(date2)
                 idss=self.pool.get('project.hr.fiche.jour').search(self.env.cr,self.env.uid,[('personne_id.id','=',self.personne_id.id or False),('chantier_id.id','=',self.chantier_id.id or False),('date','>=',self.date_debut),('date','<=',self.date_fin)])
                 idss=self.pool.get('project.hr.fiche.jour').browse(self.env.cr,self.env.uid,idss)
-                for rec in idss:
-                    tab.append((0,0,{'hr_sup':rec.hr_supp}))
                 
-                self.tableau_ids=tab  
+                for rec in idss:
+                    tab.append((0,0,{'tableau_id.hr_sup':rec.my_ids.my_id.hr_supp}))
+                
+                self.tableau_id.tableau_ids=tab  
     
  
               
