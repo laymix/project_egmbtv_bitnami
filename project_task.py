@@ -784,7 +784,7 @@ class project_hr_teamofproject(models.Model):
         if self.personne_id:
             self.matricule=self.personne_id.matricule
             self.profession=self.personne_id.profession.name
-  
+              
 class project_project(models.Model):
     _inherit='project.project'
     
