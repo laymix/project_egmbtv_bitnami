@@ -368,6 +368,9 @@ class project_hr_(models.Model):
     tel=fields.Float(string='Télephone',digits=(25,0))
     profession=fields.Many2one('project.hr.profession',string='Profession')
     incontrat=fields.Boolean('Sous contrat')
+    year=fields.Integer('Année')
+    marque=fields.Char('Marque')
+    
     @api.one
     @api.depends('nom','prenom','profession')
     def get_name(self):
@@ -385,7 +388,44 @@ class project_hr_(models.Model):
         if message !='':   
            raise ValidationError("Les champs suivants sont invalides : "+message )  
          
+class project_hr_fleet_doc(models.Model):
+    _name='project.hr.fleet.doc'
+    name=fields.Char(string='Référence',compute='getref')
+    fleet_id=fields.Many2one('project.fleet',string='Véhicule')
+    my_grey_ids=fields.One2many('project.hr.fleet.greycard','my_grey_id',string='Carte à Grise')
+    my_insurance_ids=fields.One2many('project.hr.fleet.insurance','my_insurance_id',string='Carte à Grise')
+    @api.one
+    @api.depends('fleet_id')
+    def getref(self):
+        i=1
+        xx=0
+        if self.fleet_id:
+           idss=self.pool.get('project.hr.fleet.doc').search(self.env.cr,self.env.uid,[])
+         
+            
+           i=(idss and max(idss)) or i
+           i=i+1
+           xx=i
+           self.name= str(xx)+'/'+str(self.fleet_id.matricule or ' ')
+    
+class project_hr_fleet_greycard(models.Model):
+    _name='project.hr.fleet.greycard'
 
+    name=fields.Char('Numéro')
+    date_beg=fields.Date('Date Début')
+    date_fin=fields.Date('Date Fin')
+    pdf_up=fields.Binary('PDF Carte à Grise')
+    my_grey_id=fields.Many2one('project.hr.fleet.doc')
+    
+class project_hr_fleet_insurance(models.Model):
+    _name='project.hr.fleet.insurance'
+
+    name=fields.Char('Numéro')
+    date_beg=fields.Date('Date Début')
+    date_fin=fields.Date('Date Fin')
+    pdf_up=fields.Binary('PDF Assurance')
+    assureur=fields.Char('Assureur')
+    my_insurance_id=fields.Many2one('project.hr.fleet.doc')
 class project_hr_profession(models.Model):
     _name='project.hr.profession'
 
@@ -748,7 +788,7 @@ class project_hr_meca_affect(models.Model):
         if idss:
             
            my_id=(int(idss and max(idss)) + 1) or 1
-           ch=str(self.personne_id.matricule or '')+'/'+str(self.date or '')+'/'+str(my_id)
+        ch=str(self.personne_id.matricule or '')+'/'+str(self.date or '')+'/'+str(my_id)
        
         return ch
     name=fields.Char(string='Référence',default=get_ref)
@@ -779,11 +819,14 @@ class project_hr_teamofproject(models.Model):
     date_affect=fields.Date(string='Date d\'affectation')
     my_id=fields.Many2one('project.hr.teamofprject',sting='equipe')
     my_ids=fields.One2many('project.hr.teamofproject','my_id' ,string='equipe')
+    
     @api.onchange('personne_id')
     def onchanger(self):
         if self.personne_id:
             self.matricule=self.personne_id.matricule
             self.profession=self.personne_id.profession.name
+            
+            
               
 class project_project(models.Model):
     _inherit='project.project'
