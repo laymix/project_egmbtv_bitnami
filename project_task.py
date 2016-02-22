@@ -247,6 +247,7 @@ class project_hr_point_jou(models.Model):
         
 
     name=fields.Char(string='Référence')
+    date=fields.Date('Date')
     chantier_id=fields.Many2one('project.project',string='Chantier')
     code_chantier=fields.Char(string='Code',related='chantier_id.code')
     gazoil=fields.Float(string='Gazoil')
@@ -260,8 +261,8 @@ class project_hr_point_jou(models.Model):
     bareme_gazoil=fields.Integer(string='Barème Gazoil')
     trav_exe=fields.Text(string='TRAVAUX EXECUTES')
     lepointeur=fields.Binary(string='Le pointeur')
-    my_point_ids=fields.One2many('project.hr.point.jour','my_point_id',string='stock',default=my_stock)
-    my_point_id=fields.Many2one('project.hr.point.jour',string='stock')
+    my_point_ids=fields.One2many('project.hr.point.jou','my_point_id',string='stock',default=my_stock)
+    my_point_id=fields.Many2one('project.hr.point.jou',string='stock')
     my_perso_ids=fields.One2many('project.hr.point.perso','my_perso_id',string='tableau pointage')
     my_persing_ids=fields.One2many('project.hr.point.perso.chauff','my_persing_id',string='tableau pointage')
     my_persoud_ids=fields.One2many('project.hr.point.perso.soud','my_persoud_id',string='tableau pointage')
@@ -390,24 +391,25 @@ class project_hr_(models.Model):
          
 class project_hr_fleet_doc(models.Model):
     _name='project.hr.fleet.doc'
-    name=fields.Char(string='Référence',compute='getref')
-    fleet_id=fields.Many2one('project.fleet',string='Véhicule')
-    my_grey_ids=fields.One2many('project.hr.fleet.greycard','my_grey_id',string='Carte à Grise')
-    my_insurance_ids=fields.One2many('project.hr.fleet.insurance','my_insurance_id',string='Carte à Grise')
-    @api.one
-    @api.depends('fleet_id')
+    
     def getref(self):
         i=1
         xx=0
-        if self.fleet_id:
-           idss=self.pool.get('project.hr.fleet.doc').search(self.env.cr,self.env.uid,[])
-         
-            
-           i=(idss and max(idss)) or i
-           i=i+1
-           xx=i
-           self.name= str(xx)+'/'+str(self.fleet_id.matricule or ' ')
+        idss=[]
+        idss=self.pool.get('project.hr.fleet.doc').search(self.env.cr,self.env.uid,[])
+        if idss:
+              i=(int(idss and max(idss)) + 1) or 1
+           
+              
+        return str(i)+'/'+str(self.fleet_id.matricule or ' ')
     
+    name=fields.Char(string='Référence',default=getref)
+    fleet_id=fields.Many2one('project.fleet',string='Véhicule')
+    my_grey_ids=fields.One2many('project.hr.fleet.greycard','my_grey_id',string='Carte à Grise')
+    my_insurance_ids=fields.One2many('project.hr.fleet.insurance','my_insurance_id',string='Carte à Grise')
+    
+ 
+   
 class project_hr_fleet_greycard(models.Model):
     _name='project.hr.fleet.greycard'
 
@@ -416,6 +418,7 @@ class project_hr_fleet_greycard(models.Model):
     date_fin=fields.Date('Date Fin')
     pdf_up=fields.Binary('PDF Carte à Grise')
     my_grey_id=fields.Many2one('project.hr.fleet.doc')
+    filename=fields.Char('filename')
     
 class project_hr_fleet_insurance(models.Model):
     _name='project.hr.fleet.insurance'
