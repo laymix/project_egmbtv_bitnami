@@ -20,12 +20,325 @@
             <field name="model">project.task</field>
             <field name="inherit_id" ref="project.view_task_form2" />
             <field name="arch" type="xml">
+            	<field name="name" position="attributes">
+
+            	<attribute name="invisible">1</attribute>
+            	</field>
+
                 <field name="name" position="before">
                     <field name="task_type_id" placeholder="task type"
-                        required="1" style="width:10%%;" />
+                        required="1" style="width:80%%;" />
                     <field name="color" invisible="1" />
                     <field name="type_name" invisible="1" />
+             
+
+
+
                 </field>
+                <group name="chantier" position="inside">
+                	
+                	<group attrs="{'invisible':
+[('task_type_id','!=',1)]}">
+                	<field name="appro_marche" 
+ style="width:50%%;"/>
+<field name="num_marche"/>
+<field name="dep"/>
+<field name="reg"/>
+
+
+</group>
+            	<group attrs="{'invisible':
+[('task_type_id','!=',3)]}">
+                	
+<field name="trav_dir"/>
+<field name="cond_trav"/>
+<field name="resp_geo"/>
+<field name="resp_topo"/>
+<field name="comp_chantier"/>
+<field name="resp_geo"/>
+
+</group>
+         	<group attrs="{'invisible':
+[('task_type_id','!=',2)]}">
+                	<field name="nomination" 
+ style="width:50%%;"/>
+<field name="odre_serv_up"/>
+<field name="dep"/>
+<field name="reg"/>
+
+
+</group>
+<group attrs="{'invisible':
+[('task_type_id','!=',4)]}">
+                	
+<field name="proj_exe_up"/>
+
+
+</group>
+<group attrs="{'invisible':
+[('task_type_id','!=',5)]}">
+                	
+<field name="doc_geo_up"/>
+
+
+</group>
+
+<group attrs="{'invisible':
+[('task_type_id','!=',6)]}">
+                	
+<field name="doc_topo_up"/>
+
+
+</group>
+<group attrs="{'invisible':
+[('task_type_id','!=',7)]}">
+                	
+<field name="doc_approvis_up"/>
+</group>
+<group attrs="{'invisible':
+[('task_type_id','!=',8)]}">
+                	
+<field name="doc_mat_dexe_up"/>
+</group>
+
+<group attrs="{'invisible':
+[('task_type_id','!=',10)]}">
+                	
+
+
+	
+	<field name="planing_reunion_up"/>
+	
+
+</group>
+
+<group attrs="{'invisible':
+[('task_type_id','!=',17)]}">
+                	
+
+
+	
+	<field name="estim_cout_pges"/>
+	<field name="estim_cout_pges_up"/>
+
+</group>
+<group attrs="{'invisible':
+[('task_type_id','!=',21)]}">
+                	
+<field name="contrat_up"/>
+
+
+</group>
+<group></group>
+                </group>
+                  <group name="chantier" position="after">
+                <group attrs="{'invisible':
+[('task_type_id','!=',9)]}">
+                	
+<field name="my_team_dexe_ids" nolabel="1">
+<tree editable="bottom">
+	
+	<field name="poste_id"/>
+	<field name="emploi_assign"/>
+	<field name="date_assign"/>	
+	<field name="date"/>
+</tree>
+</field>
+</group>
+ <group attrs="{'invisible':
+[('task_type_id','!=',11)]}">
+                	
+<field name="my_inst_cht_ids" nolabel="1">
+<tree editable="bottom">
+	
+	<field name="my_cht_id"/>
+	<field name="avancement"/>
+	<field name="date"/>	
+</tree>
+</field>
+</group>
+
+
+ <group attrs="{'invisible':
+[('task_type_id','!=',12)]}">
+                	
+<field name="my_task_trav_ids" nolabel="1">
+<tree editable="bottom">
+	
+	<field name="my_trav_id"/>
+
+	<field name="date"/>	
+		<field name="caracteristique"/>
+			<field name="valeur"/>
+				<field name="unite"/>
+					<field name="valider"/>	
+</tree>
+</field>
+</group>
+ <group attrs="{'invisible':
+[('task_type_id','!=',13)]}">
+                	
+<field name="my_terr_gen_ids" nolabel="1">
+<tree editable="bottom">
+	
+	<field name="my_terr_id"/>
+
+	<field name="date"/>	
+		<field name="caracteristique"/>
+			<field name="valeur"/>
+				<field name="unite"/>
+					<field name="valider"/>
+</tree>
+</field>
+</group>
+ <group attrs="{'invisible':
+[('task_type_id','!=',14)]}">
+                	
+<field name="my_task_chauss_ids" nolabel="1">
+<tree editable="bottom">
+	
+	<field name="my_chauss_id"/>
+
+	<field name="date"/>	
+		<field name="caracteristique"/>
+			<field name="valeur"/>
+				<field name="unite"/>
+					<field name="valider"/>
+</tree>
+</field>
+</group>
+ <group attrs="{'invisible':
+[('task_type_id','!=',15)]}">
+                	
+<field name="my_task_ass_ouv_prot_ids" nolabel="1">
+<tree editable="bottom">
+	
+	<field name="my_ouv_id"/>
+
+	<field name="date"/>	
+		<field name="caracteristique"/>
+			<field name="valeur"/>
+				<field name="unite"/>
+					<field name="valider"/>
+</tree>
+</field>
+</group>
+ <group attrs="{'invisible':
+[('task_type_id','!=',16)]}">
+                	
+<field name="my_task_sec_sign_rout_ids" nolabel="1">
+<tree editable="bottom">
+	
+	<field name="my_sec_id"/>
+
+	<field name="date"/>	
+		<field name="caracteristique"/>
+			<field name="valeur"/>
+				<field name="unite"/>
+					<field name="valider"/>
+</tree>
+</field>
+</group>
+<group attrs="{'invisible':
+[('task_type_id','!=',18)]}">
+
+<h1 align="center">Fiche Commande Matériel</h1>
+<br></br>
+<br></br>
+<newline/>
+
+  
+<newline/>
+
+<field name="my_matos_cmd_ids" nolabel="1">
+<tree editable="bottom">
+	
+	<field name="name"/>
+
+	<field name="quantite"/>	
+		<field name="unite"/>
+
+			<field name="date_mise"/>
+				<field name="obs"/>
+</tree>
+</field>
+
+</group>
+<group attrs="{'invisible':
+[('task_type_id','!=',19)]}">
+
+<h1 align="center">Gestion des Engins</h1>
+<br></br>
+<br></br>
+<newline/>
+
+  
+
+<newline/>
+
+<field name="my_fleet_eng_ids" nolabel="1">
+<tree editable="bottom">
+	
+	<field name="fleet_id"/>
+
+	<field name="categorie"/>	
+		<field name="etat"/>
+		<field name="hr_march"/>	
+
+				<field name="dot_gazoil"/>
+				<field name="date_dot"/>	
+		<field name="trav_exe"/>
+		<field name="panne_id"/>	
+		<field name="obs"/>
+</tree>
+</field>
+
+<newline/>
+<h1 align="center">Gestion des Camions</h1>
+<newline/>
+
+
+<field name="my_fleet_cam_ids" nolabel="1">
+<tree editable="bottom">
+	
+	<field name="fleet_id"/>
+
+	<field name="categorie"/>	
+		<field name="etat"/>
+
+			<field name="nbr_load"/>
+				<field name="kilo_by_load"/>
+				<field name="nbr_load"/>
+				<field name="dot_huile"/>
+				<field name="dot_gazoil"/>
+				<field name="date_dot"/>
+				<field name="panne_id"/>
+				<field name="obs"/>
+
+</tree>
+</field>
+</group>
+<group attrs="{'invisible':
+[('task_type_id','!=',20)]}">
+                	<h1 align="center">Fiche Gestion de L'Equipe Technique</h1>
+<newline/>
+<field name="my_team_dexec_ids" nolabel="1">
+<tree editable="bottom">
+	
+
+	<field name="poste_id"/>	
+		<field name="nombre"/>
+			<field name="hr_trav"/>
+				<field name="taux_horaires"/>
+					<field name="taux_sem"/>
+										<field name="frais"/>
+											<field name="total"/>
+
+</tree>
+</field>
+</group>
+
+</group>
             </field>
         </record>
 

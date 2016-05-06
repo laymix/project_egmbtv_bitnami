@@ -21,9 +21,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
-from openerp import models, api, fields, _
-
+try:
+     import cStringIO as StringIO
+except ImportError:
+     import StringIO
+from openerp import models, api, fields,tools, _
+from PIL import Image
+from PIL import ImageEnhance
+from random import randint
 from openerp.exceptions import ValidationError
 
 from datetime import datetime, time, date, timedelta
@@ -274,6 +279,8 @@ class project_hr_point_jou(models.Model):
     my_persoud_ids=fields.One2many('project.hr.point.perso.soud','my_persoud_id',string='tableau pointage')
     user_connected=fields.Many2one('res.users',string="Utilisateur Connecté",compute='my_auto_id')
     id_compute=fields.Integer('project_id')
+    affecto_ids=fields.One2many('project.fleet.affecto','affecto_id',string='Affectation')
+    profil_ids=fields.One2many('project.hr.point.profil','profil_id',string='Profil')
 
     @api.depends('id_compute')
     def my_auto_id(self):
@@ -290,42 +297,144 @@ class project_hr_point_jou(models.Model):
             tab=[]
             tab1=[]
             tab2=[]
+            tab3=[]
+            tab4=[]
+            tab5=[]
+            tab6=[]
+            tab7=[]
+            tab8=[]
+            tab9=[]
+            tab10=[]
+            tab11=[]
+            tab12=[]
+            idis=[]
+            comp=[]
+
             vehicule=0
             mat=''
+            idi=[]
+            effect=[]
 
 
 
 
 
-            idss=self.pool.get('project.project').search(self.env.cr,self.env.uid,[('state','=','open')])
-            for record in self.pool.get('project.project').browse(self.env.cr,self.env.uid,idss):
-                idss=self.pool.get('project.hr.meca.affect').search(self.env.cr,self.env.uid,[])
-                for recording in self.pool.get('project.hr.meca.affect').browse(self.env.cr,self.env.uid,idss):
-                    idsse=self.pool.get('project.hr.meca.affect.board').search(self.env.cr,self.env.uid,[('my_affect_id.personne_id.id','=',recording.personne_id.id),('my_affect_id.personne_id.incontrat','=',True)])
-                    i=idsse and max(idsse)
-                    idsse=self.pool.get('project.hr.meca.affect.board').browse(self.env.cr,self.env.uid,i)
-                    vehi=self.pool.get('project.fleet').search(self.env.cr,self.env.uid,[('personne_id.id','=',recording.personne_id.id)])
+            idss=self.env["project.project"].search([('state','=','open')])
+
+            """
+               idis=self.pool.get('project.hr').search(self.env.cr,self.env.uid,[],order='company_hr desc')
+               idi=self.pool.get('project.hr').browse(cr,uid,idis)
+            """
 
 
-                    y=vehi and max(vehi)
-                    idss=self.pool.get('project.fleet').browse(self.env.cr,self.env.uid,vehi)
-                    for vec in idss:vehicule=idss.id
-                    if len(idsse)>1:
-                        
-                        if idsse[0].chantier_id.code == record.code and idsse[0].my_affect_id.personne_id.profession.name=='Chauffeur':
-                           tab.append((0,0,{'perso_id':idsse[0].my_affect_id.personne_id.id,'matricule':idsse[0].my_affect_id.personne_id.matricule,'design_matoss':vehicule}))
-                        elif idsse[0].chantier_id.id == record.id and idsse[0].my_affect_id.personne_id.profession.name=='Conducteur':
-                            tab1.append([(0,0,{'perso_id':idsse[0].my_affect_id.personne_id.id,'matricule':idsse[0].my_affect_id.personne_id.matricule,'design_matoss':vehicule})])
-                        else:
+            for record in idss:
 
-                            tab2.append([(0,0,{'perso_id':idsse[0].my_affect_id.personne_id.id,'matricule':idsse[0].my_affect_id.personne_id.matricule,'design_matoss':vehicule})])
+                comp=self.env["project.hr.company"].search([])
+                for compa in comp:
+                    idi=self.env["project.hr"].search([('company_hr.id','=',compa.id),('project_id.id','=',record.id)])
+                    idi.sorted(key=lambda	r:	r.id,	reverse=True)
+                    if len(idi)!=0:
+                      """
+                      for recording in idi:
 
-                self.create({'name':str(record.code)+'/'+fields.Date.to_string(datetime.today()),'Date':fields.date.today(),'chantier_id':record.id,'my_perso_ids':tab,'my_persing_ids':tab1,
-                                                   'my_persoud_ids':tab2})
+                      idsse=self.env['project.hr.meca.affect.board'].search([('affecta_id.id','=',recording.id)])
 
 
+                      idsse.sorted(key=lambda	r:	r.id,	reverse=True)
+                        y=vehi and max(vehi)
+
+                    """
 
 
+
+
+
+
+
+
+
+
+
+
+
+                      for idsse in idi:
+
+
+                       if  idsse.company_hr.id == 2 and idsse.incontrat==True:
+                           if idsse.fleet_affecto_id.cat_id.type_idd.id == 12 and idsse.profession.id == 2:
+
+
+
+                               tab.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id == 12 and idsse.profession.id != 2:
+
+                               tab.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id != 12 and idsse.profession.id == 2:
+
+                               tab1.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id != 12 and idsse.profession.id == 1:
+
+                                 tab2.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'design_matoss':idsse.fleet_affecto_id.id}))
+
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id != 12 and (idsse.profession.id in [(17),(29),(28)]):
+
+                                 tab3.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'profession':idsse.profession.name,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id != 12 and (idsse.profession.id in [(5),(6),(7),(8),(9)]):
+
+                                 tab8.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'profession':idsse.profession.name,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id != 12 and (idsse.profession.id not in [(5),(6),(7),(8),(9) ,(17),(29),(28)]):
+
+                                 tab9.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'profession':idsse.profession.name,'design_matoss':idsse.fleet_affecto_id.id}))
+
+                       elif  idsse.company_hr.id != 2 and idsse.incontrat==True:
+                           if idsse.fleet_affecto_id.cat_id.type_idd.id == 12 and idsse.profession.id == 2:
+
+
+
+                               tab4.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id == 12 and idsse.profession.id != 2:
+
+                               tab4.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id != 12 and idsse.profession.id == 2:
+
+                               tab5.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id != 12 and idsse.profession.id == 1:
+
+                                 tab6.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id != 12 and (idsse.profession.id != 1 or idsse.profession.id != 2):
+
+                                 tab7.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'profession':idsse.profession.name,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id != 12 and (idsse.profession.id in [(5),(6),(7),(8),(9)]):
+
+                                 tab10.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'profession':idsse.profession.name,'design_matoss':idsse.fleet_affecto_id.id}))
+                           elif idsse.fleet_affecto_id.cat_id.type_idd.id != 12 and (idsse.profession.id not in [(5),(6),(7),(8),(9) ,(17),(29),(28)]):
+
+                                 tab11.append((0,0,{'perso_id':idsse.id,'matricule':idsse.matricule,'profession':idsse.profession.name,'design_matoss':idsse.fleet_affecto_id.id}))
+
+
+
+
+
+
+                tab4.extend(tab5)
+                tab.extend(tab1)
+                tab.extend(tab4)
+                tab2.extend(tab6)
+
+
+
+                tab7.extend(tab10)
+                tab7.extend(tab11)
+                tab3.extend(tab8)
+                tab3.extend(tab9)
+                tab3.extend(tab7)
+                tab3.sort(key=lambda  r:r[2].get("profession"),reverse=False)
+
+
+
+
+                self.create({'name':str(record.code)+'/'+str(record.id).zfill(10)+'/'+fields.Date.to_string(datetime.today()),'date':fields.Date.to_string(datetime.now()),'chantier_id':record.id,'my_perso_ids':tab,'my_persing_ids':tab2,
+                                                   'my_persoud_ids':tab3})
 
 
 
@@ -334,8 +443,38 @@ class project_hr_point_jou(models.Model):
 
 
     def creating_auto_fich(self):
+
           self.runs_server()
+
           return True
+class project_hr_affecto_fleet(models.Model):
+    _name='project.hr.affecto.fleet'
+
+    name=fields.Char('Affectation')
+    date_alloc=fields.Date('Date d\'allocation')
+    date_retrait=fields.Date('Date d\'allocation')
+    affecto_id=fields.Many2one('project.fleet',string='Affectation')
+    histo_affecta_hr_id=fields.Many2one('project.hr',string='Historrique Des Affectations')
+
+class project_fleet_affecto_hr(models.Model):
+    _name='project.fleet.affecto_hr'
+
+    name=fields.Char('Affectation')
+    personne_id=fields.Many2one('project.hr',string='Personne',delegate=True)
+    date_alloc=fields.Date('Date d\'allocation')
+    date_retrait=fields.Date('Date d\'allocation')
+    isopen=fields.Boolean('Fermé')
+    obs=fields.Text('Observation')
+    histo_affect_id=fields.Many2one('project.fleet',string='Affectation')
+
+class project_fleet_affecto(models.Model):
+    _name='project.fleet.affecto'
+
+    name=fields.Char('Affectation')
+    personne_id=fields.Many2one('project.hr',string='Personne',delegate=True)
+    date_alloc=fields.Date('Date d\'allocation')
+    date_retrait=fields.Date('Date d\'allocation')
+    affecto_id=fields.Many2one('project.fleet',string='Affectation')
 class project_trav_exe(models.Model):
     _name='project.trav.exe'
     name=fields.Char('Travaux Exécutés')
@@ -357,7 +496,7 @@ class project_hr_point_perso(models.Model):
     my_perso_id=fields.Many2one('project.hr.point.jourr',string='Pointage')
 
 
-    perso_id=fields.Many2one('project.hr',string='Personnel')
+    perso_id=fields.Many2one('project.hr',string='Personnel',delegate=True)
     matricule=fields.Char(string='Matricule')
     presence=fields.Integer(string='Présence')
     trav_effect=fields.Char(string='Travaux Effectués')
@@ -373,11 +512,43 @@ class project_hr_point_perso(models.Model):
     def changeme(self):
         if self.perso_id:
            self.matricule=self.perso_id.matricule
+           self.design_matoss=self.perso_id.fleet_affecto_id.id
+class project_hr_point_profil(models.Model):
+    _name='project.hr.point.profil'
+
+    name=fields.Char('ref')
+    type_profil_id=fields.Many2one('project.hr.point.etape.profil',string='étape')
+    dupk=fields.Float('Du Pk')
+    aupk=fields.Float('Au Pk')
+    total=fields.Float('total')
+    profil_id=fields.Many2one('project.hr.point.jourr',string='profil')
+
+    @api.onchange('dupk','aupk')
+    def vchaf(self):
+        if self.dupk!=0 and self.aupk!=0:
+            if self.aupk<self.dupk:
+                raise  ValidationError("Le Pk final ne doit pas être inférieure au pk initial")
+            else:
+               self.total=(self.aupk - self.dupk) *25
+
+
+
+
+
+class project_hr_point_etape_profil(models.Model):
+    _name='project.hr.point.etape.profil'
+
+    name=fields.Char('Profil')
+
+
+
+
+
 class project_hr_point_perso_chauff(models.Model):
     _name='project.hr.point.perso.chauff'
 
     name=fields.Char(string='Personne')
-    perso_id=fields.Many2one('project.hr',string='Personnel')
+    perso_id=fields.Many2one('project.hr',string='Personnel',delegate=True)
     matricule=fields.Char(string='Matricule')
     presence=fields.Integer(string='Présence')
     trav_effect=fields.Char(string='Travaux Effectués')
@@ -403,7 +574,7 @@ class project_hr_point_perso_soud(models.Model):
     _name='project.hr.point.perso.soud'
 
     name=fields.Char(string='Personne')
-    perso_id=fields.Many2one('project.hr',string='Personnel')
+    perso_id=fields.Many2one('project.hr',string='Personnel',delegate=True)
     matricule=fields.Char(string='Matricule')
     presence=fields.Integer(string='Présence')
     trav_effect=fields.Char(string='Travaux Effectués')
@@ -411,7 +582,7 @@ class project_hr_point_perso_soud(models.Model):
     design_matoss=fields.Many2one('project.fleet',string='Désignation Matériel')
     dot_gazoil=fields.Float(string='Dotation Gazoil L')
     dot_huile=fields.Float(string='Dotation Huile L')
-
+    profession=fields.Char('profession')
     my_persoud_id=fields.Many2one('project.hr.point.jourr',string='Pointage')
 
     @api.onchange('perso_id')
@@ -423,16 +594,7 @@ class project_hr_point_perso_soud(models.Model):
 
 class project_hr_(models.Model):
     _name='project.hr'
-    def get_mat(self):
-        idss=[]
-        ch=''
-        idd=0
-        idss=self.pool.get('project.hr').search(self.env.cr,self.env.uid,[])
-        idd=(int(idss and max(idss)) + 1) or 1
 
-        ch='HR'+str(idd)
-
-        return ch
     def get_lastnum(self):
         idss=[]
         my_gid=0
@@ -441,30 +603,302 @@ class project_hr_(models.Model):
 
 
         return idd
-
-
-
-
-    name=fields.Char(string='Personne',compute='get_name')
+    name=fields.Char(string='Personne',compute='get_time')
     nom=fields.Char(string='Nom')
     prenom=fields.Char(string='Prénom')
     last_num=fields.Integer('Last Num',default=get_lastnum)
-    matricule=fields.Char(string='Matricule',default=get_mat)
+    matricule=fields.Char(string='Matricule',compute='get_mat',store=True)
     num_ci=fields.Float(string='Numéro d\' identité',digits=(13,0))
     tel=fields.Float(string='Télephone',digits=(25,0))
     profession=fields.Many2one('project.hr.profession',string='Profession')
     incontrat=fields.Boolean('Sous contrat',default=False)
     year=fields.Integer('Année')
     marque=fields.Char('Marque')
+    hr_trav_dep=fields.Integer('Heure début')
+    hr_trav_fin=fields.Integer('Heure de fin')
     project_id=fields.Many2one('project.project',domain=[('state','=','open')])
+    company_hr=fields.Many2one('project.hr.company',string="Entreprise")
+    affecta_ids=fields.One2many('project.hr.meca.affect.board','affecta_id',string='Affectation')
+    fleet_affecto_id=fields.Many2one('project.fleet',compute='alouer')
+    my_perso_jour_ids=fields.One2many('project.hr.fiche.jour.contrat.jour','my_perso_jour_id',string='Feuille de temps',compute='get_time')
+    my_perso_jour_hr_ids=fields.One2many('project.hr.fiche.jour.contrat.jour.hr','my_perso_jour_hr_id',string='Feuille de temps',compute='get_time')
+    state=fields.Selection([('enconcept','En Conception'),('incontrat','Sous Contrat'),('ferme','Fermé')],default='enconcept')
+    date_beg_cont=fields.Date(string='Date Début')
+    date_fin_cont=fields.Date(string='Date Fin')
+    choix_contrat=fields.Selection([],string='Fiche de temps de  réference')
+    montant=fields.Float('Montant',digits=(20,0))
+    indice=fields.Selection([('j','Jour'),('h','Heures'),('m','Mois')])
+    net_a_payer=fields.Float('Net à payer',digits=(20,0))
+    valeur_ajout=fields.Float('Valeur ajouté',digits=(20,0))
+    my_permihr_ids=fields.One2many('project.hr.fleet.permis','my_permihr_id',string='Permis')
+    motif=fields.Text('Motif')
+    filename_avatar=fields.Char('Filename')
+    image_avatar=fields.Binary('Photo')
+    nb_total=fields.Float('Total',digits=(20,0))
+    num_seq_mat=fields.Integer('Numero matricule sous-traitant',compute='num_seq_matik')
+    my_doc_ids=fields.One2many('project.hr.doc_medic','my_doc_id',string='Document Medical')
+    personne_to_hr_ids=fields.One2many('project.hr.rapport_to_hr','personne_to_hr_id',compute='get_time',string='Rapport de chantier')
+    personning_ids=fields.Many2many('project.hr.rapport','Rapport de chantier',compute='get_time')
+    image_medium=fields.Binary('image_medium')
+    histo_affecta_ids=fields.Many2many('project.hr.affecto.fleet',string='Véhcicules alloués',compute='get_time')
+    situation_matri=fields.Selection([('c','Célibataire'),('m','Marié(e)'),('d','Divorcé(e)'),('s','Séparé(e)'),('v','Veuf,Veuve'),('no','Non Connu(e)')])
+    adresse=fields.Text('Adresse')
+    frais_ids=fields.Many2many('project.hr.frais.board',string='Note de frais',compute='get_time')
+    type_benne=fields.Selection([('b','Benne'),('bi','Bi Benne'),('tri','Tri Benne')])
+    type_benne=fields.Selection([('b','Benne'),('bi','Bi Benne'),('tri','Tri Benne')])
+    type_benne=fields.Selection([('b','Benne'),('bi','Bi Benne'),('tri','Tri Benne')])
+
+    histo_affecta_rectif_ids=fields.Many2many('project.fleet.affecto_hr',string='Véhcicules alloués',compute='get_time')
+
 
 
     @api.one
+    @api.depends('project_id','image_avatar')
+    def num_seq_matik(self):
+        idss=[]
+        x=1
+        if self.project_id.id !=2:
+          idss=self.env["project.hr"].search([('company_hr.id','!=',2)])
+          for rec in idss:
+              rec.num_seq_mat=x
+              x+=1
+
+        if self.image_avatar:
+           image=self.image_avatar or False
+
+
+
+           if self.env.context.get("bin_size"):
+            # refetch the image with a clean context
+            image = self.env["project.hr"].with_context({}).browse(self.id).image_avatar or False
+
+
+
+           self.image_avatar= tools.image_resize_image_medium(image,size=(200,250)) or False
+        
+
+
+
+
+
+
+
+
+
+
+
+
+    @api.one
+    @api.depends('date_beg_cont','date_fin_cont','montant','valeur_ajout','indice','my_perso_jour_ids','nom','prenom','profession')
+    def get_time(self):
+        tab=[]
+        tab1=[]
+        tab2=[]
+        tabfinal=[]
+        tabfinal1=[]
+        idsse=[]
+        proj=[]
+        idss=[]
+        idss1=[]
+        idss2=[]
+        total_hr=0
+        x=0
+        y=0
+        z=0
+        sup=0
+        sup1=0
+        sup2=0
+        jr1=0
+        jr2=0
+        jr3=0
+        rap=[]
+        amp=[]
+        amp1=[]
+
+
+
+
+
+
+        if self.last_num!=0:
+           if self.nom or self.prenom or self.profession:
+               self.name=(self.profession.name or ' ')+' '+(self.prenom or ' ')+ ' '+ (self.nom or ' ') + ' '
+           rap=self.env["project.hr.rapport"].search([('personne_id.last_num','=',self.last_num)])
+
+           amp1= self.env["project.hr.frais.board"].search([('personne_id.last_num','=',self.last_num)])
+           if len(amp1)!=0:
+               self.frais_ids=amp1
+
+
+
+           amp= self.env["project.fleet.affecto_hr"].search([('personne_id.last_num','=',self.last_num)])
+           if len(amp)!=0:
+
+                self.histo_affecta_rectif_ids=amp
+
+           if len(rap)!=0:
+             self.personning_ids=rap
+
+
+
+
+
+        if self.date_beg_cont or self.date_fin_cont:
+
+
+
+           proj=self.env["project.project"].search([('state','=','open')])
+           idsse=self.env["project.hr"].search([('last_num','=',self.last_num)])
+           for record in proj:
+               tab1=[]
+               tab2=[]
+
+               x=0
+               y=0
+               z=0
+               sup=0
+               sup1=0
+               sup2=0
+               jr1=0
+               jr2=0
+               jr3=0
+
+               idss=self.env["project.hr.point.perso"].search([('perso_id.last_num','=',self.last_num),('my_perso_id.chantier_id.id','=',record.id),('my_perso_id.date','>=',self.date_beg_cont),('my_perso_id.date','<=',self.date_fin_cont)])
+               idss1=self.env["project.hr.point.perso.chauff"].search([('perso_id.last_num','=',self.last_num),('my_persing_id.chantier_id.id','=',record.id),('my_persing_id.date','>=',self.date_beg_cont),('my_persing_id.date','<=',self.date_fin_cont)])
+               idss2=self.env["project.hr.point.perso.soud"].search([('perso_id.last_num','=',self.last_num),('my_persoud_id.chantier_id.id','=',record.id),('my_persoud_id.date','>=',self.date_beg_cont),('my_persoud_id.date','<=',self.date_fin_cont)])
+
+               if len(idss)!=0 or len(idss1)!=0 or len(idss2)!=0:
+
+                  x=sum(rec.nbr_hr if rec.nbr_hr <=8 else 8 for rec in idss) if len(idss)!=0 else 0
+                  sup=sum((0 if rec.nbr_hr <=8 else rec.nbr_hr-8) for rec in idss) if len(idss)!=0 else 0
+                  jr1=sum((1 if rec.nbr_hr !=0 else 0)for rec in idss) if len(idss)!=0 else 0
+
+                  y=sum(rec.nbr_hr if rec.nbr_hr <=8 else 8 for rec in idss1) if len(idss1)!=0 else 0
+                  sup1=sum((0 if rec.nbr_hr <=8 else rec.nbr_hr-8) for rec in idss1) if len(idss1)!=0 else 0
+                  jr2=sum((1 if rec.nbr_hr !=0 else 0)for rec in idss1) if len(idss1)!=0 else 0
+
+                  z=sum(rec.nbr_hr if rec.nbr_hr <=8 else 8 for rec in idss2) if len(idss2)!=0 else 0
+                  sup2=sum((0 if rec.nbr_hr <=8 else rec.nbr_hr-8) for rec in idss2) if len(idss2)!=0 else 0
+                  jr3=sum((1 if rec.nbr_hr !=0 else 0)for rec in idss2) if len(idss2)!=0 else 0
+
+
+                  tabfinal.append((0,0,{'chantier':record.name,'nbr_jour':jr1+jr2+jr3,'hr_sup':sup+sup1+sup2,'hr_fonct':x+y+z,'total':sup1+sup2+sup+z+x+y}))
+
+               idss=self.env["project.hr.point.perso"].search([('perso_id.last_num','=',self.last_num),('my_perso_id.chantier_id.id','=',record.id)])
+               idss1=self.env["project.hr.point.perso.chauff"].search([('perso_id.last_num','=',self.last_num),('my_persing_id.chantier_id.id','=',record.id)])
+               idss2=self.env["project.hr.point.perso.soud"].search([('perso_id.last_num','=',self.last_num),('my_persoud_id.chantier_id.id','=',record.id)])
+
+               if len(idss)!=0 or len(idss1)!=0 or len(idss2)!=0:
+
+                  x=sum(rec.nbr_hr if rec.nbr_hr <=8 else 8 for rec in idss) if len(idss)!=0 else 0
+                  sup=sum((0 if rec.nbr_hr <=8 else rec.nbr_hr-8) for rec in idss) if len(idss)!=0 else 0
+                  jr1=sum((1 if rec.nbr_hr !=0 else 0)for rec in idss) if len(idss)!=0 else 0
+
+                  y=sum(rec.nbr_hr if rec.nbr_hr <=8 else 8 for rec in idss1) if len(idss1)!=0 else 0
+                  sup1=sum((0 if rec.nbr_hr <=8 else rec.nbr_hr-8) for rec in idss1) if len(idss1)!=0 else 0
+                  jr2=sum((1 if rec.nbr_hr !=0 else 0)for rec in idss1) if len(idss1)!=0 else 0
+
+                  z=sum(rec.nbr_hr if rec.nbr_hr <=8 else 8 for rec in idss2) if len(idss2)!=0 else 0
+                  sup2=sum((0 if rec.nbr_hr <=8 else rec.nbr_hr-8) for rec in idss2) if len(idss2)!=0 else 0
+                  jr3=sum((1 if rec.nbr_hr !=0 else 0)for rec in idss2) if len(idss2)!=0 else 0
+
+
+                  tabfinal1.append((0,0,{'chantier':record.name,'nbr_jour':jr1+jr2+jr3,'hr_sup':sup+sup1+sup2,'hr_fonct':x+y+z,'total':sup1+sup2+sup+z+x+y}))
+
+
+
+
+
+
+
+
+
+
+
+
+        self.my_perso_jour_ids=tabfinal
+        self.my_perso_jour_hr_ids=tabfinal1
+
+
+        if self.montant or self.valeur_ajout or self.indice:
+            if self.indice =='h' or self.indice=='':
+               self.net_a_payer= (self.montant or 0 )*  sum(reca.total for reca in self.my_perso_jour_ids)+self.valeur_ajout or 0
+            else:
+               self.net_a_payer=(self.montant or 0 )*sum(reca.nbr_jour for reca in self.my_perso_jour_ids)+self.valeur_ajout or 0
+
+    @api.one
+    def fermer_contrat(self):
+        if not self.date_cloture :
+            res=[]
+            res2=[]
+            i=0
+            self.write({'date_cloture':fields.date.today()})
+            res2=self.env["project.hr"].search([('last_num','=',self.last_num)])
+            for ress in res2:
+                ress.write({'incontrat':False,'project_id':False,'state':'ferme'})
+                self.affecta_id.state='ferme'
+
+
+    @api.one
+    def alouer(self):
+        idss=[]
+        tab=[]
+        idss=self.env["project.fleet"].search([('personne_id.last_num','=',self.last_num)])
+        if len(idss)!=0:
+          tab.append((0,0,{'name':"yes"}))
+
+
+          self.write({'histo_affecta_ids':tab})
+          self.fleet_affecto_id=idss[0].id
+    @api.one
+    @api.depends('company_hr')
+    def get_mat(self):
+        idss=[]
+        idss1=[]
+        idsse=[]
+        idss2=[]
+        tab=[]
+        tab1=[]
+        tab2=[]
+        tabfinal=[]
+        proj=[]
+        ch=''
+        idd=0
+
+
+
+        idsse=self.pool.get('project.hr').search(self.env.cr,self.env.uid,[])
+        idd=(int(idsse and max(idsse)) + 1) or 1
+        self.matricule="001/"+str(self.id or "").zfill(4) if self.company_hr.id==2 else "" if self.company_hr==False else "005/"+str(self.id or "").zfill(4)
+        if self.company_hr:
+              self.matricule="001/"+str(self.id or "").zfill(4) if self.company_hr.id==2  else "005/"+str(self.company_hr.name[:5] or "")+str(self.num_seq_mat or "").zfill(4)
+
+
+
+
+
+
+    @api.one
+    def renouveler(self):
+        self.write({
+        'state': 'incontrat','incontrat':True
+        })
+        self.state='incontrat'
+    @api.one
+    def fermer(self):
+        self.write({
+        'state': 'ferme','incontrat':False
+         })
+
+        self.state='ferme'
+    """
+    @api.one
     @api.depends('nom','prenom','profession')
     def get_name(self):
-        for record in self:
+
             if self.nom or self.prenom or self.profession:
-               self.name=(self.prenom or ' ')+ ' '+ (self.nom or ' ') + ' '+(self.profession.name or ' ')
+               self.name=(self.profession.name or ' ')+' '+(self.prenom or ' ')+ ' '+ (self.nom or ' ') + ' '
+
     @api.one
     @api.constrains('num_ci', 'tel')
     def _check_description(self):
@@ -474,7 +908,66 @@ class project_hr_(models.Model):
         if len(str(self.num_ci))<13 or self.num_ci==0:
            message=message+' [Numéro D\'identité]'
         if message !='':
-           raise ValidationError("Les champs suivants sont invalides : "+message )
+           raise Warning("Les champs suivants sont invalides : "+message )
+
+           """
+class doc_medical(models.Model):
+    _name = 'project.hr.doc_medic'
+
+
+
+
+    name=fields.Char('Reférence',compute='get_num')
+    date=fields.Date('Date',default=fields.Date.to_string(datetime.now()))
+    obs=fields.Text('Observation')
+    up_odc=fields.Binary('Document')
+    filename=fields.Char('Filename')
+    my_doc_id=fields.Many2one('project.hr',string='Document Médical')
+    @api.one
+    def get_num(self):
+        idss=[]
+        x=1
+        ch=''
+        if self.date:
+
+         ch=str(fields.Date.to_string(datetime.today()))+"/"+str(self.id).zfill(4)
+
+         self.name=ch
+class project_hr_rapport(models.Model):
+    _name='project.hr.rapport'
+
+    name=fields.Char('Référence')
+    personne_id=fields.Many2one('project.hr','Personne')
+    user_connected=fields.Many2one('res.users',compute='get_user')
+    motif=fields.Text('Motif')
+    up_motif=fields.Binary('Document de rapport')
+    filename=fields.Char('Filename')
+    chantier_id=fields.Many2one('project.project',domain=[('state','=','open')],string='Chantier')
+    date=fields.Date('Date')
+
+
+    @api.one
+    def get_user(self):
+        self.user_connected=self.env.uid
+class project_hr_rapport_to_hr(models.Model):
+    _name='project.hr.rapport_to_hr'
+
+    name=fields.Char('Référence')
+    personne_to_hr_id=fields.Many2one('project.hr','Personne')
+    user_connected=fields.Many2one('res.users',compute='get_user')
+    motif=fields.Text('Motif')
+    up_motif=fields.Binary('Document de rapport')
+    filename=fields.Char('Filename')
+    chantier_id=fields.Many2one('project.project',domain=[('state','=','open')],string='Chantier')
+    date=fields.Date('Date')
+
+
+    @api.one
+    def get_user(self):
+        self.user_connected=self.env.uid
+
+
+
 
 class project_hr_fleet_doc(models.Model):
     _name='project.hr.fleet.doc'
@@ -492,8 +985,8 @@ class project_hr_fleet_doc(models.Model):
 
     name=fields.Char(string='Référence',default=getref)
     fleet_id=fields.Many2one('project.fleet',string='Véhicule')
-    my_grey_ids=fields.One2many('project.hr.fleet.greycard','my_grey_id',string='Carte à Grise')
-    my_insurance_ids=fields.One2many('project.hr.fleet.insurance','my_insurance_id',string='Carte à Grise')
+
+
 
 
 
@@ -504,8 +997,26 @@ class project_hr_fleet_greycard(models.Model):
     date_beg=fields.Date('Date Début')
     date_fin=fields.Date('Date Fin')
     pdf_up=fields.Binary('PDF Carte à Grise')
-    my_grey_id=fields.Many2one('project.hr.fleet.doc')
+    my_greyfleet_id=fields.Many2one('project.fleet')
     filename=fields.Char('filename')
+class project_hr_fleet_permis(models.Model):
+    _name='project.hr.fleet.permis'
+
+    name=fields.Char('Numéro')
+    num_agre=fields.Char('N° Agrément')
+    num_titulaire=fields.Float('N° Titulaire',digits=(20,0))
+    num_licence=fields.Float('N° Licence',digits=(20,0))
+    type_licence=fields.Many2one('project.hr.fleet.type.licence','Type Licence')
+    pdf_up=fields.Binary('PDF Permis')
+    date_licence=fields.Date('Date Licence')
+    my_permifleet_id=fields.Many2one('project.fleet')
+    my_permihr_id=fields.Many2one('project.hr')
+    filename=fields.Char('filename')
+
+class project_hr_fleet_permis_type_licence(models.Model):
+    _name='project.hr.fleet.permis.type.licence'
+
+    name=fields.Char('Type Licence')
 
 class project_hr_fleet_insurance(models.Model):
     _name='project.hr.fleet.insurance'
@@ -514,8 +1025,53 @@ class project_hr_fleet_insurance(models.Model):
     date_beg=fields.Date('Date Début')
     date_fin=fields.Date('Date Fin')
     pdf_up=fields.Binary('PDF Assurance')
-    assureur=fields.Char('Assureur')
-    my_insurance_id=fields.Many2one('project.hr.fleet.doc')
+    assureur=fields.Char('Souscripteur')
+    my_insufleet_id=fields.Many2one('project.fleet')
+    filename=fields.Char('filename')
+    num_police=fields.Float('N° Police',digits=(20,0))
+
+
+    @api.one
+    def make_alert_insu(self):
+
+        idd=[]
+        idde=[]
+        idd=self.env['project.fleet'].search([('id','=',self.my_insufleet_id.id)])
+        if len(idd)!=0:
+
+           idd[-1].write({'alert_insu':False })
+
+
+
+    @api.one
+    def check_expiration(self):
+      """ Tests whether production is done or not.
+        @return: True or False
+      """
+      res = False
+      ob=0
+      str=''
+      idss=[]
+      idsse=[]
+      if self.date_fin:
+
+
+        idss=self.env['project.hr.fleet.insurance'].search([])
+        if len(idss)!=0:
+           if idss[-1].date_fin == fields.Date.today():
+
+                  idsse=self.env['project.fleet'].search([('id','=',idss[-1].my_insufleet_id.id)])
+                  if len(idsse)!=0:
+
+                     idsse[-1].write({'alert_insu':True})
+
+
+
+      return True
+
+
+
+
 class project_hr_profession(models.Model):
     _name='project.hr.profession'
 
@@ -563,11 +1119,20 @@ class project_fleet_pannne(models.Model):
     _name='project.fleet.panne'
 
     name=fields.Char('Pannne')
+class project_fleet_big_cat(models.Model):
+    _name='project.fleet.big_cat'
+
+
+    name=fields.Char(string='Catégorie')
+    type_idd=fields.Many2one('project.fleet.type',string='Type')
+
 class project_fleet_cat(models.Model):
     _name='project.fleet.cat'
 
-    name=fields.Char(string='Catégorie')
-    type_id=fields.Many2one('project.fleet.type',string='Type')
+    name=fields.Char(string='Sous Catégorie')
+    type_idd=fields.Many2one('project.fleet.big_cat',string='Catégorie')
+    photo=fields.Binary('Photo')
+
 class project_fleet_type(models.Model):
     _name='project.fleet.type'
 
@@ -585,9 +1150,63 @@ class project_fleet(models.Model):
     cat_id=fields.Many2one('project.fleet.cat',string='Catégorie')
     model_id=fields.Many2one('project.fleet.model',string='Model')
     matricule=fields.Char(string='Matricule')
+    reference=fields.Char('Référence',compute='get_ref')
     doc_count=fields.Integer(string='Nombre de pièces Administratives',compute='all_count')
     vidange_survey=fields.Char(string='Delai limite vidange atteint')
     personne_id=fields.Many2one('project.hr',string='Affecté à',domain=[('profession.name','in',['Chauffeur','Conducteur'])])
+    photo_up1=fields.Binary('Photo')
+    photo_up2=fields.Binary('Photo')
+    photo_up3=fields.Binary('Photo')
+    photo_up4=fields.Binary('Photo')
+    photo_up5=fields.Binary('Photo')
+    photo_up6=fields.Binary('Photo')
+    date_dacquis=fields.Date('Date d\'aquisition')
+    marque=fields.Char('Marque')
+    origine=fields.Char('Origine')
+    huile_moteur=fields.Float('Huile Moteur')
+    huile_verrin=fields.Float('Huile Verrin')
+    cartouch_ids=fields.One2many('project.fleet.cartouche','cartouch_id',string='Liste des Cartouches')
+    flexible_ids=fields.One2many('project.fleet.flexible','flexible_id',string='Liste des Flexibles')
+    struct_ids=fields.One2many('project.fleet.structure','struct_id',string='Structure')
+    delai_entretien=fields.Float('Delai Maximal d\'entretien',digits=(16,0))
+    grand_entretien=fields.Text('Grand entretien')
+    livr_entretien=fields.Binary('Livret d\'entretien et d\'instruction')
+    type_pneu=fields.Many2one('project.fleet.type_pneu',string='Type Pneu')
+    big_cat_id=fields.Many2one('project.fleet.big_cat',compute='get_ref',store=True,string='Catégorie')
+    bande_roulement=fields.Char('Bande de roulement')
+    diametre=fields.Float('Diamètre')
+    tire_conception=fields.Char('Tire de conception')
+    company=fields.Many2one('project.hr.company',string='Entreprise')
+    my_sstraitant_id=fields.Many2one('project.hr.ss_traitant',string='Entreprise')
+    filename1=fields.Char('filename')
+    filename2=fields.Char('filename')
+    filename3=fields.Char('filename')
+    filename4=fields.Char('filename')
+    filename5=fields.Char('filename')
+    filename6=fields.Char('filename')
+    type_moteur=fields.Many2one('project.fleet.moteur')
+    my_insufleet_ids=fields.One2many('project.hr.fleet.insurance','my_insufleet_id',string='Assurance')
+    my_greyfleet_ids=fields.One2many('project.hr.fleet.greycard','my_greyfleet_id',string='Carte à Grise')
+    my_permifleet_ids=fields.One2many('project.hr.fleet.permis','my_permifleet_id',string='Permis')
+    alert_insu=fields.Boolean('Assurance à Jour',default=False)
+    alert_greycard=fields.Boolean('Carte à grise',default=False)
+    histo_affect_ids=fields.One2many('project.fleet.affecto_hr','histo_affect_id',string='Véhcicules alloués')
+
+
+
+    @api.one
+    def check_alert_insu(self):
+        idss=[]
+        idsse=[]
+
+
+        idss=self.env['project.hr.fleet.insurance'].search([])
+        if len(idss)!=0:
+
+           if idss[-1].date_fin==fields.Date.today():
+
+              self.write({'alert_insu':True})
+
 
     @api.multi
     def all_count(self):
@@ -603,10 +1222,63 @@ class project_fleet(models.Model):
         self.doc_count=a
 
     @api.one
-    @api.depends('matricule','cat_id','model_id')
+    @api.depends('matricule','cat_id','model_id','my_sstraitant_id','photo_up1','photo_up2','photo_up3','photo_up4','photo_up5','photo_up6','reference')
     def get_ref(self):
-        if self.matricule or self.cat_id or self.model_id:
-            self.name=(self.cat_id.name + ' ' if self.cat_id else '')+(self.model_id.name + ' ' if self.model_id else '') + (self.matricule + ' ' if self.matricule else '')
+        tab=[]
+        res=[]
+        res1=[]
+        last_id=[]
+        last_id=self.env['project.hr'].search([])
+        self.big_cat_id=self.cat_id.type_idd.id or False
+
+        self.reference="002/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id  <=3 and self.company.id ==2) else "003/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id ==4
+                 and  self.company.id  ==2) else "004/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd  ==5 and self.company.id ==2) else "006/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id  <=3 and self.company.id !=2) else ""
+
+        if self.matricule or self.model_id:
+            self.name=(self.cat_id.name + ' ' if self.cat_id else '') + (self.matricule + ' ' if self.matricule else '')
+        if self.cat_id:
+
+               self.big_cat_id=self.cat_id.type_idd.id
+               res=self.env['project.fleet.structure'].search([('big_cat.id','=',self.cat_id.type_idd.id)])
+               res1=self.env['project.fleet.cat'].search([('id','=',self.cat_id.id)])
+               if len(res1)!=0:
+                   self.photo_up1=res1[0].photo
+               if len(res)!=0:
+                  for record in res:
+                      tab.append((0,0,{'name':record.name,'photo':record.photo}))
+               self.struct_ids=tab
+        if self.my_sstraitant_id:
+            self.company=self.my_sstraitant_id.my_comp_ids.id
+            if self.my_sstraitant_id!=False:
+               self.reference="002/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id  <=3 and self.company.id ==2) else "003/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id ==4
+                 and  self.company.id  ==2) else "004/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd  ==5 and self.company.id ==2) else "006/"+str(self.id or 0).zfill(6)
+
+
+        if self.photo_up1 or self.photo_up2 or self.photo_up3 or self.photo_up4 or self.photo_up5 or self.photo_up6:
+           image=self.photo_up1 or False
+           image1=self.photo_up2 or False
+           image2=self.photo_up3 or False
+           image3=self.photo_up4 or False
+           image4=self.photo_up5 or False
+           image5=self.photo_up6 or False
+
+           if self.env.context.get("bin_size"):
+            # refetch the image with a clean context
+            image = self.env[self._name].with_context({}).browse(self.id).photo_up1 or False
+            image1 = self.env[self._name].with_context({}).browse(self.id).photo_up2 or False
+            image2 = self.env[self._name].with_context({}).browse(self.id).photo_up3 or False
+            image3 = self.env[self._name].with_context({}).browse(self.id).photo_up4 or False
+            image4 = self.env[self._name].with_context({}).browse(self.id).photo_up5 or False
+            image5 = self.env[self._name].with_context({}).browse(self.id).photo_up6 or False
+
+            data = tools.image_get_resized_images(image) or False
+           self.photo_up1= tools.image_resize_image_medium(image ,size=(300,300)) or False
+           self.photo_up2= tools.image_resize_image_medium(image1,size=(300,300)) or False
+           self.photo_up3= tools.image_resize_image_medium(image2 ,size=(350,350)) or False
+           self.photo_up4= tools.image_resize_image_medium(image3,size=(350,350)) or False
+           self.photo_up5= tools.image_resize_image_medium(image4,size=(350,350)) or False
+           self.photo_up6= tools.image_resize_image_medium(image5,size=(350,350)) or False
+
     @api.v7
     def return_action_to_open(self, cr, uid, ids, context=None):
         """ This opens the xml view specified in xml_id for the current vehicle """
@@ -619,6 +1291,100 @@ class project_fleet(models.Model):
             res['domain'] = [('fleet_id','=', ids[0])]
             return res
         return False
+
+
+
+class project_fleet_type_pneu(models.Model):
+    _name='project.fleet.type_pneu'
+
+    name=fields.Char('Type Pneu')
+
+
+class project_fleet_cartouch(models.Model):
+     _name='project.fleet.cartouche'
+
+     name=fields.Char('Cartouche')
+     reference=fields.Char('Reference')
+     type_cartouche=fields.Many2one('project.fleet.type.cartouche',string='Type Cartouche')
+     photo=fields.Binary('Photo')
+     cartouch_id=fields.Many2one('project.fleet')
+class project_fleet_type_cartouche(models.Model):
+    _name='project.fleet.type.cartouche'
+
+    name=fields.Char('Type')
+
+class project_fleet_flexible(models.Model):
+    _name='project.fleet.flexible'
+
+    name=fields.Char('Flexible')
+    emplacement=fields.Char('Emplacement')
+    reference=fields.Char('Réference')
+    photo=fields.Binary('Photo')
+    flexible_id=fields.Many2one('project.fleet',string='Flexible')
+
+class project_fleet_structure(models.Model):
+    _name='project.fleet.structure'
+
+    name=fields.Char('Désignation')
+    photo=fields.Binary('Photos')
+    cat=fields.Many2one('project.fleet.cat',string='Catégorie')
+    big_cat=fields.Many2one('project.fleet.big_cat',string='Catégorie')
+    valeur=fields.Char('Valeur')
+    struct_id=fields.Many2one('project.fleet')
+    filename=fields.Char('Filename')
+class project_hr_frais(models.Model):
+    _name='project.hr.frais'
+
+    name=fields.Char('Désignation',compute='ref')
+    chantier_id=fields.Many2one('project.project',string='Chantier')
+    user_connected=fields.Many2one('res.users',string='Utilisateur Connecté',computed='ref')
+    frais_ids=fields.One2many('project.hr.frais.board','frais_id',string='Note de frais')
+
+
+
+    @api.one
+    def ref(self):
+        self.user_connected=self.env.uid
+
+        self.name=str(self.chantier_id.code or 0)+'/'+str(self.chantier_id.id or 0).zfill(4)+'/'+fields.Date.to_string(datetime.today())
+
+
+class project_hr_frais_board(models.Model):
+    _name='project.hr.frais.board'
+
+    name=fields.Char('Désignation')
+    personne_id=fields.Many2one('project.hr',string='Personne')
+    type_frais=fields.Many2one('project.hr.type.frais',string='Type de frais')
+    chantier=fields.Char('Chantier',related='frais_id.chantier_id.name',compute='name_chantier')
+    montant=fields.Float(string='Montant',digits=(20,0))
+    date=fields.Date('Date')
+    frais_id=fields.Many2one('project.hr.frais',string='Note de frais')
+    obs=fields.Text('Observation')
+    @api.one
+    @api.depends('frais_id')
+    def name_chantier(self):
+        if self.frais_id:
+           self.chantier=self.frais_id.chantier_id.name
+
+class project_hr_type_frais(models.Model):
+    _name='project.hr.type.frais'
+
+
+    name=fields.Char('Type de frais')
+
+
+
+
+class project_fleet_entretien(models.Model):
+    _name='project.fleet.entretien'
+
+    name=fields.Char('Entretien')
+    categorie=fields.Many2one('project.fleet.cat','Catégorie')
+    deroulement=fields.Text('Déroulement')
+
+
+
+
 class  project_hr_fleet_vidange(models.Model):
       _name='project.hr.fleet.vidange'
 
@@ -744,43 +1510,89 @@ class project_hr_fiche_jour(models.Model):
       _name='project.hr.fiche.jour'
 
 
-      name=fields.Char(string='Réference')
+      name=fields.Char(string='Réference',compute='myref')
       chantier_id=fields.Many2one('project.project',string='Chantier')
-      fonction=fields.Char(string='Fonction',related='personne_id.profession.name')
+      fonction=fields.Char(string='Fonction',compute='myref')
       personne_id=fields.Many2one('project.hr',string='Prénom et Nom')
       matricule=fields.Char(string='N°',related='personne_id.matricule')
-      date=fields.Date(string='Date')
-      mois=fields.Char(string='Mois')
-      my_ids=fields.One2many('project.hr.fiche.jour.board','my_id',string='Tableau')
+      date=fields.Date(string='Date',default=fields.Date.to_string(datetime.now()))
+      mois=fields.Char(string='Mois',compute='onchangeme')
+      my_ids=fields.One2many('project.hr.fiche.jour.board','my_id',string='Tableau',compute='comp_id',store=True)
       chefchantier=fields.Binary(string='Chef de chantier')
       chauffeur=fields.Binary(string='Le Chauffeur')
       fleet_id=fields.Many2one('project.fleet',string='Matricule')
       pointeur=fields.Binary(string='Le Pointeur')
       specialist=fields.Binary(string='Le Spécialiste')
       maneuvre=fields.Binary(string='Le Manoeuvre')
-      user_connected=fields.Many2one('res.users',string='Utilisateur Connecté')
+      user_connected=fields.Many2one('res.users',string='Utilisateur Connecté',compute='my_auto_id')
+      @api.one
+      def myref(self):
+          self.name= str(self.chantier_id.code)+'/'+str(self.id or 0).zfill(10)
+          self.fonction= str(self.personne_id.profession.name or ' ') + ' ' + (('('+str(self.personne_id.company_hr.name) +')') or ' ')
+      def my_auto_id(self):
+        self.user_connected= self.env.uid
+
+      def comp_id(self):
+
+              int_mois=0
+              int_year=0
+              daye=datetime.now()
+              datetime1=datetime.now()
+              date=fields.Date()
+              date2=fields.Date()
+              date1=fields.Date()
+              datedebut=fields.Date()
+              mytimedelta=timedelta(days=1)
+              tab=[]
+              tabperso=[]
+              tabchauff=[]
+              tabsoud=[]
+              date=datetime.now()
+              int_mois=int(date.month)
+              int_year=int(date.year)
+              datedebut=datetime(int_year,int_mois-1,26)
+              date2=datetime(int_year,int_mois,26)
+
+              while datedebut < date2:
+                  date1=fields.Date.to_string(datedebut)
+                  """
+                  tabperso=self.env["project.hr.point.perso.chauff"].search([('perso_id.id','=',self.personne_id.id),('my_persing_id.date','=',date1)])
+                  """
+                  tab.append((0,0,{'jour':date1,'gazoil':tabperso[0].dot_gazoil if len(tabperso) != 0 else 0}))
+
+                  datedebut=datedebut + timedelta(days=1)
+              self.my_ids=tab
 
 
-      @api.onchange('date','my_ids')
+      @api.one
+      @api.depends('create_date','mois')
       def onchangeme(self):
 
-          moiss=''
-          int_mois=0
-          int_year=0
-          daye=datetime.now()
-          datetime1=datetime.now()
-          date=fields.Date()
 
-          mytimedelta=timedelta(days=1)
-          tab=[]
+            if self.create_date!='':
+
+              moiss=''
+              int_mois=0
+              int_year=0
+              daye=datetime.now()
+              datetime1=datetime.now()
+              date=fields.Date()
+              date2=fields.Date()
+              date1=fields.Date()
+              datedebut=fields.Date()
+              mytimedelta=timedelta(days=1)
+              tab=[]
+              tabperso=[]
+              tabchauff=[]
+              tabsoud=[]
 
 
-          if self.date:
 
 
 
 
-              date=fields.Date.from_string(self.date)
+
+              date=fields.Date.from_string(self.create_date)
               int_mois=int(date.month)
               int_year=int(date.year)
 
@@ -791,35 +1603,50 @@ class project_hr_fiche_jour(models.Model):
 
               self.mois=moiss
 
-              datedebut=datetime(int_year,int_mois-1,26)
-              date2=datetime(int_year,int_mois,26)
 
 
-
-              while datedebut < date2:
-                  date1=fields.Date.to_string(datedebut)
-
-                  tab.append((0,0,{'jour':date1}))
-
-                  datedebut=datedebut + timedelta(days=1)
-              self.my_ids=tab
 
 class project_hr_fiche_jour_board(models.Model):
     _name='project.hr.fiche.jour.board'
 
     name=fields.Char('Personne')
     jour=fields.Date(string='Date')
-    gazoil=fields.Float(string='Gazoil')
+    gazoil=fields.Float(string='Gazoil',compute='get_val')
     huile=fields.Float(string='Huile')
     nbr_jour=fields.Integer(string='Nombre de J')
-    hr_dep=fields.Integer(string='H. Départ')
-    hr_darr=fields.Integer(string='H. d\'arriv')
+    hr_dep=fields.Integer(string='H. Départ',related='my_id.personne_id.hr_trav_dep')
+    hr_darr=fields.Integer(string='H. d\'arriv',related='my_id.personne_id.hr_trav_fin')
     hr_fonct=fields.Integer(string='H. Fonct')
     hr_supp=fields.Integer(string='H. Suppl')
     decharge=fields.Char(string='Décharge')
     obs=fields.Text(string='Observation')
     my_id=fields.Many2one('project.hr.fiche.jour',string='Tableau')
+    @api.one
+    def get_val(self):
+        idss=[]
+        idss1=[]
+        idss2=[]
+        diff=0
+        idss=self.env["project.hr.point.perso"].search([('perso_id.id','=',self.personne_id.id),('my_perso_id.date','=',self.jour)])
+        idss1=self.env["project.hr.point.perso.chauff"].search([('perso_id.id','=',self.personne_id.id),('my_persing_id.date','=',self.jour)])
+        idss2=self.env["project.hr.point.perso.soud"].search([('perso_id.id','=',self.personne_id.id),('my_persoud_id.date','=',self.jour)])
+        if len(idss)!=0 or len(idss1)!=0  or len(idss2)!=0:
 
+           self.gazoil=(sum(rec.dot_gazoil for rec in idss) or 0) + (sum(reca.dot_gazoil for reca in idss1) or 0) + (sum(reco.dot_gazoil for reco in idss2) or 0)
+           self.huile=(sum(rec.dot_huile for rec in idss) or 0) + (sum(reca.dot_huile for reca in idss1 ) or 0) + (sum(reco.dot_huile for reco in idss2) or 0)
+           self.nbr_jour=(sum(rec.presence for rec in idss) or 0) + (sum(reca.presence for reca in idss1 ) or 0)+ (sum(reco.presence for reco in idss2) or 0)
+           self.hr_fonct=(sum(rec.nbr_hr for rec in idss) or 0) + (sum(reca.nbr_hr for reca in idss1 ) or 0) + (sum(reco.nbr_hr for reco in idss2) or 0)
+
+
+           self.hr_dep=self.my_id.personne_id.hr_trav_dep
+           self.hr_darr=self.my_id.personne_id.hr_trav_fin
+           diff=self.hr_darr-self.hr_dep
+           self.hr_supp = self.hr_fonct - diff if (self.hr_fonct > diff) else 0
+
+
+           self.obs= (sum(rec.trav_effect for rec in idss) or 0) + (sum(reca.trav_effect for reca in idss1 ) or 0 )+ (sum(reco.trav_effect for reco in idss2) or 0)
+
+    """
     @api.onchange('hr_dep','hr_darr')
     def onchanges(self):
         if self.hr_dep and self.hr_darr:
@@ -827,7 +1654,7 @@ class project_hr_fiche_jour_board(models.Model):
                  raise ValidationError('L\'heure de départ ne peut pas être supérieure à l\'heure d\'arrivée' )
               self.my_id.my_ids.hr_fonct=8 if self.my_id.my_ids.hr_darr - self.my_id.my_ids.hr_dep>=8 else self.my_id.my_ids.hr_darr - self.my_id.my_ids.hr_dep
               self.my_id.my_ids.hr_supp=0 if  self.my_id.my_ids.hr_darr - self.my_id.my_ids.hr_dep<=8 else self.my_id.my_ids.hr_darr - self.my_id.my_ids.hr_dep - 8
-
+    """
 class project_hr_fiche_jour_contrat(models.Model):
     _name='project.hr.fiche.jour.contrat'
 
@@ -939,7 +1766,23 @@ class project_hr_fiche_jour_contrat_jour(models.Model):
     nbr_jour=fields.Integer('Nombre de jours')
     chantier=fields.Char('Chantier')
     total=fields.Integer('Total')
+    my_perso_jour_id=fields.Many2one('project.hr',string='Feuille de temps')
     my_jour_id=fields.Many2one('project.hr.fiche.jour.contrat',string='Fiche journalière')
+    profession=fields.Char('Poste occupé')
+class project_hr_fiche_jour_contrat_jour_hr(models.Model):
+    _name='project.hr.fiche.jour.contrat.jour.hr'
+
+    name=fields.Char(string='Fiche Journalière')
+    gazoil=fields.Float('Gazoil')
+    huile=fields.Float('Huile')
+    hr_sup=fields.Integer('H. Supp')
+    hr_fonct=fields.Integer('H. Fonct')
+    nbr_jour=fields.Integer('Nombre de jours')
+    chantier=fields.Char('Chantier')
+    total=fields.Integer('Total')
+    my_perso_jour_hr_id=fields.Many2one('project.hr',string='Feuille de temps')
+    my_jour_id=fields.Many2one('project.hr.fiche.jour.contrat',string='Fiche journalière')
+    profession=fields.Char('Poste occupé')
 class project_hr_fiche_jour_contrat_meca(models.Model):
     _name='project.hr.fiche.jour.contrat.meca'
 
@@ -999,17 +1842,19 @@ class project_hr_meca_affect_board(models.Model):
     date_cloture=fields.Date('Date fermeture contrat chantier')
     obs=fields.Text('Observation')
     my_affect_id=fields.Many2one('project.hr.meca.affect',string='Affectation',delegate=True)
+    affecta_id=fields.Many2one('project.hr',string='Affectation',delegate=True)
     @api.one
     def fermer_contrat(self):
-        if self.date_cloture !='' :
+        if not self.date_cloture :
             res=[]
+            res2=[]
             i=0
-            self.write({'my_affet_id.state':'ferme','date_cloture':fields.date.today()})
-            res=self.pool.get('project.hr').search(self.env.cr,self.env.uid,[('matricule','=',self.my_affect_id.personne_id.matricule)])
-            i=res and max(res)
-            res=self.pool.get('project.hr').browse(self.env.cr,self.env.uid,i)
-            for record in res:
-                record.write(self.env.cr,self.env.uid,{'incontrat':False})
+            self.write({'date_cloture':fields.date.today()})
+            res2=self.env["project.hr"].search([('matricule','=',self.affecta_id.matricule)])
+            for ress in res2:
+                ress.write({'incontrat':False,'project_id':False,'state':'ferme'})
+                self.affecta_id.state='ferme'
+
 
 
 
@@ -1110,17 +1955,33 @@ class project_project(models.Model):
             }
 
 
+        project_type=fields.Many2one('project_type_eg',string='Type de Projet')
+
+class project_type_eg(models.Model):
+    _name='project.type.eg'
+
+    name=fields.Char('Type de projet')
 
 
 
 
+class project_hr_company(models.Model):
+    _name='project.hr.company'
+
+    name=fields.Char('Entreprise')
+    type=fields.Selection([('interne','interne'),('externe','externe')])
 
 
+    @api.onchange('name')
+    def onchangename(self):
+        if self.name:
+            self.type='externe'
 
+class project_hr_ss_traitant(models.Model):
+    _name='project.hr.ss_traitant'
 
-
-
-
+    name=fields.Char('Entreprise')
+    my_comp_ids=fields.Many2one('project.hr.company')
 
 
 
