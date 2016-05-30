@@ -1076,8 +1076,23 @@ class project_hr_fleet_greycard(models.Model):
     date_beg=fields.Date('Date Début')
     date_fin=fields.Date('Date Fin')
     pdf_up=fields.Binary('PDF Carte à Grise')
+    conf=fields.Selection([('ok','ok'),('no','no')],default='no')
+    state=fields.Boolean('état',compute='alert')
     my_greyfleet_id=fields.Many2one('project.fleet')
     filename=fields.Char('filename')
+
+    @api.one
+    @api.depends('date_fin','conf')
+    def alert(self):
+        idd=[]
+        date=fields.Date()
+        date1=fields.Date()
+        date=fields.Date.from_string(self.date_fin)
+        if self.date_fin == fields.Date.today() and self.conf == 'no':
+           self.state=True
+        else:
+           self.state=False
+
 class project_hr_fleet_permis(models.Model):
     _name='project.hr.fleet.permis'
 
@@ -1120,10 +1135,24 @@ class project_hr_fleet_insurance(models.Model):
     date_beg=fields.Date('Date Début')
     date_fin=fields.Date('Date Fin')
     pdf_up=fields.Binary('PDF Assurance')
+    state=fields.Boolean('state',compute='alert')
     assureur=fields.Char('Souscripteur')
     my_insufleet_id=fields.Many2one('project.fleet')
     filename=fields.Char('filename')
+    conf=fields.Selection([('ok','ok'),('no','no')],default='no')
     num_police=fields.Float('N° Police',digits=(20,0))
+
+    @api.one
+    @api.depends('date_fin','conf')
+    def alert(self):
+        idd=[]
+        date=fields.Date()
+        date1=fields.Date()
+        date=fields.Date.from_string(self.date_fin)
+        if self.date_fin == fields.Date.today() and self.conf == 'no':
+           self.state=True
+        else:
+           self.state=False
 
 
     @api.one
@@ -1220,20 +1249,13 @@ class project_fleet_big_cat(models.Model):
 
     name=fields.Char(string='Catégorie')
     type_idd=fields.Many2one('project.fleet.type',string='Type')
-class project_fleet_big_fleet_cat(models.Model):
-    _name='project.fleet.big_fleet_cat'
-
-
-    name=fields.Char(string='Catégorie')
-    big_cat_fl_id=fields.Many2one('project.fleet.structure',string='structure')
-    type_idd=fields.Many2one('project.fleet.type',string='Type')
 
 class project_fleet_cat(models.Model):
     _name='project.fleet.cat'
 
     name=fields.Char(string='Sous Catégorie')
     type_idd=fields.Many2one('project.fleet.big_cat',string='Catégorie')
-    type_iddd=fields.Many2one('project.fleet.big_fleet_cat',string='Catégorie')
+    type_iddd=fields.Many2one('project.fl.big_cate',string='Catégorie')
     photo=fields.Binary('Photo')
 
 class project_fleet_type(models.Model):
@@ -1271,12 +1293,14 @@ class project_fleet(models.Model):
     cartouch_ids=fields.One2many('project.fleet.cartouche','cartouch_id',string='Liste des Cartouches')
     flexible_ids=fields.One2many('project.fleet.flexible','flexible_id',string='Liste des Flexibles')
     struct_ids=fields.One2many('project.fleet.structure','struct_id',string='Structure')
+    entretien_ids=fields.Many2many('ir.attachment')
+    vidange_ids=fields.One2many('project.hr.fleet.vidange.board','vidangee_id',string='Vidange')
     delai_entretien=fields.Float('Delai Maximal d\'entretien',digits=(16,0))
     grand_entretien=fields.Text('Grand entretien')
     livr_entretien=fields.Binary('Livret d\'entretien et d\'instruction')
     type_pneu=fields.Many2one('project.fleet.type_pneu',string='Type Pneu')
     big_cat_id=fields.Many2one('project.fleet.big_cat',compute='get_ref',store=True,string='Catégorie')
-    big_cat__fl_id=fields.Many2one('project.fleet.big_fl_cat',compute='get_ref',store=True,string='Catégorie')
+    big_cate_id=fields.Many2one('project.fl.big_cate',compute='get_ref',string='Catégorie')
     bande_roulement=fields.Char('Bande de roulement')
     diametre=fields.Float('Diamètre')
     tire_conception=fields.Char('Tire de conception')
@@ -1288,6 +1312,7 @@ class project_fleet(models.Model):
     filename4=fields.Char('filename')
     filename5=fields.Char('filename')
     filename6=fields.Char('filename')
+    filename=fields.Char('filename')
     type_moteur=fields.Many2one('project.fleet.moteur')
     my_insufleet_ids=fields.One2many('project.hr.fleet.insurance','my_insufleet_id',string='Assurance')
     my_greyfleet_ids=fields.One2many('project.hr.fleet.greycard','my_greyfleet_id',string='Carte à Grise')
@@ -1324,54 +1349,99 @@ class project_fleet(models.Model):
                 a=a+1
 
         self.doc_count=a
-
-    @api.one
-    @api.depends('matricule','cat_id','model_id','my_sstraitant_id','photo_up1','photo_up2','photo_up3','photo_up4','photo_up5','photo_up6','reference')
-    def get_ref(self):
-        tab=[]
-        res=[]
-        res1=[]
-        last_id=[]
-        last_id=self.env['project.hr'].search([])
-        self.big_cat_id=self.cat_id.type_idd.id or False
+    @api.onchange('photo_up1','photo_up2','photo_up3','photo_up4','photo_up5','photo_up6')
+    def onchangeme(self):
 
 
-        self.reference="002/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id  <=3 and self.company.id ==2) else "003/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id ==4
-                 and  self.company.id  ==2) else "004/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd  ==5 and self.company.id ==2) else "006/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id  <=3 and self.company.id !=2) else ""
+            image1=self.photo_up1  if self.photo_up1 else False
 
-        if self.matricule or self.model_id:
-            self.name=(self.cat_id.name + ' ' if self.cat_id else '') + (self.matricule + ' ' if self.matricule else '')
-        if self.cat_id:
+            image2=self.photo_up2  if self.photo_up2 else False
 
-               self.big_cat_id=self.cat_id.type_idd.id
-               res=self.env['project.fleet.structure'].search([('big_cat.id','=',self.cat_id.type_idd.id)])
-               res1=self.env['project.fleet.cat'].search([('id','=',self.cat_id.id)])
-               if len(res1)!=0:
-                   self.photo_up1=res1[0].photo
-               if len(res)!=0:
-                  for record in res:
-                      tab.append((0,0,{'name':record.name,'photo':record.photo}))
-               self.struct_ids=tab
-        if self.my_sstraitant_id:
-            self.company=self.my_sstraitant_id.my_comp_ids.id
-            if self.my_sstraitant_id!=False:
-               self.reference="002/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id  <=3 and self.company.id ==2) else "003/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id ==4
-                 and  self.company.id  ==2) else "004/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd  ==5 and self.company.id ==2) else "006/"+str(self.id or 0).zfill(6)
+            image3=self.photo_up3  if self.photo_up3 else False
+
+            image4=self.photo_up4  if self.photo_up4 else False
+            image5=self.photo_up5  if self.photo_up5 else False
+            image6=self.photo_up6  if self.photo_up6 else False
 
 
-        if self.photo_up1 or self.photo_up2 or self.photo_up3 or self.photo_up4 or self.photo_up5 or self.photo_up6:
-           image=self.photo_up1 or False
-           image1=self.photo_up2 or False
-           image2=self.photo_up3 or False
-           image3=self.photo_up4 or False
-           image4=self.photo_up5 or False
-           image5=self.photo_up6 or False
+
+
+
+
+            if self.env.context.get("bin_size"):
+
+                 image1 = self.env[self._name].with_context({}).browse(self.id).photo_up1 if self.photo_up1 else False
+
+                 image2 = self.env[self._name].with_context({}).browse(self.id).photo_up2 if self.photo_up2 else False
+
+                 image3 = self.env[self._name].with_context({}).browse(self.id).photo_up3 if self.photo_up3 else False
+
+                 image4 = self.env[self._name].with_context({}).browse(self.id).photo_up4 if self.photo_up4 else False
+                 image5 = self.env[self._name].with_context({}).browse(self.id).photo_up5 if self.photo_up5 else False
+                 image6 = self.env[self._name].with_context({}).browse(self.id).photo_up6 if self.photo_up6 else False
+
+
+            if self.photo_up1:
+               self.photo_up1= tools.image_resize_image_medium(image1 ,size=(350,350)) or False
+            if self.photo_up2:
+               self.photo_up2= tools.image_resize_image_medium(image2 ,size=(350,350)) or False
+            if self.photo_up3:
+               self.photo_up3= tools.image_resize_image_medium(image3 ,size=(350,350)) or False
+            if self.photo_up4:
+               self.photo_up4= tools.image_resize_image_medium(image4 ,size=(350,350)) or False
+            if self.photo_up5:
+               self.photo_up5= tools.image_resize_image_medium(image5 ,size=(350,350)) or False
+            if self.photo_up6:
+               self.photo_up6= tools.image_resize_image_medium(image6 ,size=(350,350)) or False
+
+
+
+            """
+           if self.photo_up1:
+              image=self.photo_up1 or False
+              self.photo_up1= tools.image_resize_image_medium(image ,size=(350,350)) or False
+           if self.photo_up2:
+              image1=self.photo_up2 or False
+              self.photo_up2= tools.image_resize_image_medium(image1 ,size=(350,350)) or False
+           if self.photo_up3:
+              image2=self.photo_up3 or False
+              self.photo_up3= tools.image_resize_image_medium(image2 ,size=(350,350)) or False
+
+           if self.photo_up4:
+
+              image3=self.photo_up4 or False
+              self.photo_up4= tools.image_resize_image_medium(image3 ,size=(350,350)) or False
+           if self.photo_up5:
+              image4=self.photo_up5 or False
+              self.photo_up5= tools.image_resize_image_medium(image4 ,size=(350,350)) or False
+           if self.photo_up6:
+              image5=self.photo_up6 or False
+              self.photo_up6= tools.image_resize_image_medium(image5 ,size=(350,350)) or False
 
            if self.env.context.get("bin_size"):
             # refetch the image with a clean context
-            image = self.env[self._name].with_context({}).browse(self.id).photo_up1 or False
+            if self.photo_up1:
+               image = self.env[self._name].with_context({}).browse(self.id).photo_up1 or False
+               self.photo_up1= tools.image_resize_image_medium(image ,size=(350,350)) or False
+            if self.photo_up2:
+               image1 = self.env[self._name].with_context({}).browse(self.id).photo_up2 or False
+               self.photo_up2= tools.image_resize_image_medium(image1 ,size=(350,350)) or False
+
+            if self.photo_up3:
+               image2 = self.env[self._name].with_context({}).browse(self.id).photo_up3 or False
+               self.photo_up3= tools.image_resize_image_medium(image2 ,size=(350,350)) or False
+            if self.photo_up4:
+               image3 = self.env[self._name].with_context({}).browse(self.id).photo_up4 or False
+               self.photo_up4= tools.image_resize_image_medium(image3 ,size=(350,350)) or False
+            if self.photo_up5:
+               image4 = self.env[self._name].with_context({}).browse(self.id).photo_up5 or False
+               self.photo_up5= tools.image_resize_image_medium(image4 ,size=(350,350)) or False
+            if self.photo_up6:
+               image5 = self.env[self._name].with_context({}).browse(self.id).photo_up6 or False
+               self.photo_up6= tools.image_resize_image_medium(image5 ,size=(350,350)) or False
+
             image1 = self.env[self._name].with_context({}).browse(self.id).photo_up2 or False
-            image2 = self.env[self._name].with_context({}).browse(self.id).photo_up3 or False
+
             image3 = self.env[self._name].with_context({}).browse(self.id).photo_up4 or False
             image4 = self.env[self._name].with_context({}).browse(self.id).photo_up5 or False
             image5 = self.env[self._name].with_context({}).browse(self.id).photo_up6 or False
@@ -1379,10 +1449,71 @@ class project_fleet(models.Model):
             data = tools.image_get_resized_images(image) or False
            self.photo_up1= tools.image_resize_image_medium(image ,size=(300,300)) or False
            self.photo_up2= tools.image_resize_image_medium(image1,size=(300,300)) or False
-           self.photo_up3= tools.image_resize_image_medium(image2 ,size=(350,350)) or False
-           self.photo_up4= tools.image_resize_image_medium(image3,size=(350,350)) or False
+               self.photo_up4= tools.image_resize_image_medium(image3,size=(350,350)) or False
            self.photo_up5= tools.image_resize_image_medium(image4,size=(350,350)) or False
            self.photo_up6= tools.image_resize_image_medium(image5,size=(350,350)) or False
+           """
+
+
+
+    @api.one
+    @api.depends('matricule','model_id','my_sstraitant_id','reference','cat_id')
+    def get_ref(self):
+        tab=[]
+        res=[]
+        res1=[]
+        ch=''
+        int=0
+        last_id=[]
+        last_id=self.env['project.hr'].search([])
+        self.big_cat_id=self.cat_id.type_idd.id or False
+        self.big_cate_id=self.cat_id.type_iddd.id or False
+
+
+        self.reference="002/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id  <=3 and self.company.id ==2) else "003/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id ==4
+                 and  self.company.id  ==2) else "004/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd  ==5 and self.company.id ==2) else "006/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id  <=3 and self.company.id !=2) else ""
+
+        if self.matricule or self.model_id:
+            self.name=(self.cat_id.name + ' ' if self.cat_id else '') + (self.matricule + ' ' if self.matricule else '')
+        if self.cat_id != False:
+
+               self.big_cat_id=self.cat_id.type_idd.id
+               self.big_cate_id=self.cat_id.type_iddd.id
+               res=self.env['project.fleet.structure'].search([('cating_ids.id','=',self.cat_id.type_iddd.id)])
+               res1=self.env['project.fleet.cat'].search([('id','=',self.cat_id.id)])
+               if len(res1)!=0:
+
+                   self.photo_up1=res1[0].photo
+               if len(res)!=0:
+                  ch=res[0].moteur
+                  int=res[0].struct_id.id
+
+                  for record in res:
+                      if int==0:
+                         tab.append((0,0,{'moteur':record.moteur,'type_struct_id':record.type_struct_id.id}))
+                         tab.append((0,0,{'name':record.name,'photo':record.photo,'filename':record.filename}))
+                         int=record.type_struct_id.id
+
+
+                      if record.type_struct_id.id == int :
+                          tab.append((0,0,{'name':record.name,'photo':record.photo,'filename':record.filename}))
+                          int=record.type_struct_id.id
+                      if record.type_struct_id.id != int :
+
+                         tab.append((0,0,{'moteur':record.moteur,'type_struct_id':record.type_struct_id.id}))
+                         tab.append((0,0,{'name':record.name,'photo':record.photo,'filename':record.filename}))
+                         int=record.type_struct_id.id
+
+               self.struct_ids=tab
+               self.entretien_ids= res.mapped('my_photo_ids')
+        if self.my_sstraitant_id:
+            self.company=self.my_sstraitant_id.my_comp_ids.id
+            if self.my_sstraitant_id!=False:
+               self.reference="002/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id  <=3 and self.company.id ==2) else "003/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd.id ==4
+                 and  self.company.id  ==2) else "004/"+str(self.id or 0).zfill(6) if (self.big_cat_id.type_idd  ==5 and self.company.id ==2) else "006/"+str(self.id or 0).zfill(6)
+
+        self.struct_ids=tab
+
 
     @api.v7
     def return_action_to_open(self, cr, uid, ids, context=None):
@@ -1424,6 +1555,8 @@ class project_fleet_flexible(models.Model):
     name=fields.Char('Flexible')
     emplacement=fields.Char('Emplacement')
     reference=fields.Char('Réference')
+    filename=fields.Char('filename')
+    filename=fields.Char('filename')
     photo=fields.Binary('Photo')
     flexible_id=fields.Many2one('project.fleet',string='Flexible')
 
@@ -1434,11 +1567,71 @@ class project_fleet_structure(models.Model):
     photo=fields.Binary('Photos')
     cat=fields.Many2one('project.fleet.cat',string='Catégorie')
     big_cat=fields.Many2one('project.fleet.big_cat',string='Catégorie')
+    cating_ids=fields.Many2many('project.fl.big_cate',string='Catégorie')
     valeur=fields.Char('Valeur')
-    big_cat_fl_ids=fields.One2many('project.fleet.big_fleet_cat','big_cat_fl_id',string='Catégorie')
     struct_id=fields.Many2one('project.fleet')
+    moteur=fields.Char('Structure Principal',compute='get_it')
+    type_struct_id=fields.Many2one('project.fleet.type_struct',string='Type')
+    valeur_poss=fields.Text('Valeur possible')
+    my_photo_ids=fields.Many2many('ir.attachment',string='Documentation')
     filename=fields.Char('Filename')
+    moteur_ids=fields.Many2many('project.moteur',string='Moteur')
 
+
+    @api.one
+    @api.depends('type_struct_id')
+    def get_it(self):
+
+        self.moteur=self.type_struct_id.moteur_id.name
+
+    @api.onchange('photo')
+    def onchangeme(self):
+        if self.photo:
+           image=self.photo or False
+
+
+
+           if self.env.context.get("bin_size"):
+            # refetch the image with a clean context
+            image = self.env["project.fleet.structure"].with_context({}).browse(self.id).photo or False
+
+
+
+           self.photo= tools.image_resize_image_medium(image,size=(250,250)) or False
+
+
+class project_moteur(models.Model):
+    _name='project.moteur'
+
+    name=fields.Char('Désignation')
+    moteur=fields.Many2one('project.fleet.moteur')
+class project_fleet_moteur(models.Model):
+    _name='project.fleet.moteur'
+    name=fields.Char('Type')
+
+class project_fleet_type_struct(models.Model):
+    _name='project.fleet.type_struct'
+
+    name=fields.Char('Type')
+    moteur_id=fields.Many2one('project.fleet.moteur')
+
+class project_fl_big_cate(models.Model):
+    _name='project.fl.big_cate'
+
+    name=fields.Char(string='Catégorie')
+    type_idd=fields.Many2one('project.fleet.type',string='Type')
+
+
+class project_fleet_structuree(models.Model):
+    _name='project.fleet.structuree'
+
+    name=fields.Char('Désignation')
+    photo=fields.Binary('Photos')
+    cat=fields.Many2one('project.fleet.cat',string='Catégorie')
+    big_cat=fields.Many2one('project.fleet.big_cat',string='Catégorie')
+    valeur=fields.Char('Valeur')
+    structe_id=fields.Many2one('project.fleet')
+    filename=fields.Char('Filename')
 
 class project_hr_frais(models.Model):
     _name='project.hr.frais'
@@ -1512,8 +1705,29 @@ class project_hr_fleet_vidange(models.Model):
       name=fields.Char('Tableau')
       date_vidange=fields.Date('Date Vidange')
       pdf_up=fields.Binary(string='PDF Etat')
+      effect=fields.Char('Vidange')
       obs=fields.Text('Observation')
       my_board_id=fields.Many2one('project.hr.fleet.vidange',string='Tableau')
+      state=fields.Boolean(string='état',compute='auto_compute')
+      consommation=fields.Float('Consommation')
+      conf=fields.Selection([('ok','ok'),('no','no')],default='no')
+      filename=fields.Char('Filename')
+      vidangee_id=fields.Many2one('project.fleet',string='Véhicule')
+
+      @api.one
+      @api.depends('consommation')
+      def auto_compute(self):
+          if self.consommation > 300 and self.conf == 'no' :
+
+              self.state=True
+          else :
+              self.state=False
+
+
+
+
+
+
 
 
 
